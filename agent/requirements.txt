@@ -20,6 +20,7 @@ langchain==0.3.27
 langchain-core==0.3.81
 langchain-openai==0.3.35
 langchain-text-splitters==0.3.11
+langgraph==0.2.70
 langsmith==0.4.37
 openai==2.14.0
 orjson==3.11.5

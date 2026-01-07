@@ -1,28 +1,53 @@
-#https://v2docs.galileo.ai/cookbooks/use-cases/agent-langchain | Following this video
 from dotenv import load_dotenv
-from langchain.agents import initialize_agent
-from langchain.agents.agent_types import AgentType
 from langchain_openai import ChatOpenAI
-from galileo import galileo_context
+from langchain_core.tools import tool
+from langgraph.prebuilt import create_react_agent
 from galileo.handlers.langchain import GalileoCallback
-from galileo import GalileoLogger
-
-from tools.stock_advice import stock_advice_tool
-
 
 load_dotenv()
 
-context = galileo_context.init(project="Financial Advisor Agent", log_stream="dev_main_ls")
+# Create callback - it will capture everything including tool calls
+callback = GalileoCallback()
 
-logger= GalileoLogger()
 
-agent = initialize_agent(
-    tools=[stock_advice_tool],
-    llm=ChatOpenAI(model="gpt-4", temperature=0.7, callbacks=[GalileoCallback(galileo_logger=logger)]),
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
+@tool
+def get_stock_advice(symbol: str) -> dict:
+    """Get stock investment advice for a given stock symbol.
+    
+    Args:
+        symbol: The stock ticker symbol (e.g., AAPL, GOOGL, MSFT)
+    
+    Returns:
+        Investment recommendation with target price, confidence, and reasoning.
+    """
+    return {
+        "symbol": symbol,
+        "recommendation": "BUY",
+        "target_price": 185.50,
+        "current_price": 175.20,
+        "confidence": "High",
+        "reasoning": "Strong fundamentals, positive earnings growth, and favorable market conditions suggest upward momentum."
+    }
+
+
+llm = ChatOpenAI(model="gpt-4", temperature=0.7)
+
+SYSTEM_PROMPT = """You are a helpful financial advisor assistant. 
+You provide stock investment advice and market analysis.
+Always explain your reasoning clearly and include relevant data when available.
+Be concise but thorough in your responses."""
+
+agent = create_react_agent(
+    model=llm,
+    tools=[get_stock_advice],
+    prompt=SYSTEM_PROMPT,
 )
 
 if __name__ == "__main__":
-    result = agent.invoke({"input": "Get stock advice for AAPL and explain the recommendation."})
-    print(f"\nAgent Response:\n{result['output']}")
+    # Pass callback in config to capture full trace (LLM calls + tool calls)
+    result = agent.invoke(
+        {"messages": [("user", "Should I buy AAPL?")]},
+        config={"callbacks": [callback]}
+    )
+    final_message = result["messages"][-1]
+    print(f"\nAgent Response:\n{final_message.content}")
