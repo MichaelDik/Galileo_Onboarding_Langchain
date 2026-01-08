@@ -19,10 +19,13 @@ logger = GalileoLogger(
     project="Financial Advisor Agent",
     log_stream="multi-turn-session"
 )
+#Dynmaically Create Session Name
+logger.start_session(name="Logger Session Tutorial")
 
 # Create callback with the logger
 callback = GalileoCallback(galileo_logger=logger)
 
+#Instance of OpenaAIs gpt 3 via langhcain wrapper
 llm = ChatOpenAI(model="gpt-4", temperature=0.7)
 
 SYSTEM_PROMPT = """You are a helpful financial advisor assistant. 
@@ -30,7 +33,7 @@ You provide stock investment advice, customer information, and bank account deta
 Always explain your reasoning clearly and include relevant data when available.
 Be concise but thorough in your responses."""
 
-agent = create_react_agent(
+financial_advisor_agent = create_react_agent(
     model=llm,
     tools=[get_stock_advice, get_customer_info, get_bank_balance],
     prompt=SYSTEM_PROMPT,
@@ -44,7 +47,7 @@ if __name__ == "__main__":
     while True:
         user_input = input("You: ").strip()
         
-        if user_input.lower() in ["quit", "exit", "q"]:
+        if user_input.lower() in ["quit", "exit", "q", "thank you", "goodbye"]:
             print("Goodbye!")
             break
         
@@ -55,7 +58,7 @@ if __name__ == "__main__":
         messages.append(("user", user_input))
         
         # Pass callback in config to capture full trace (LLM calls + tool calls)
-        result = agent.invoke(
+        result = financial_advisor_agent.invoke(
             {"messages": messages},
             config={"callbacks": [callback]}
         )
