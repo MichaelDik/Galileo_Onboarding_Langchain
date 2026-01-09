@@ -17,10 +17,10 @@ load_dotenv()
 # Create logger with project and session name
 logger = GalileoLogger(
     project="Financial Advisor Agent",
-    log_stream="dev"
+    log_stream="dev_main_ls"
 )
 #Dynmaically Create Session Name
-logger.start_session(name="3 Tools Calls")
+#logger.start_session(name="FAA - Harcoded Prompts")
 
 # Create callback with the logger
 callback = GalileoCallback(galileo_logger=logger)

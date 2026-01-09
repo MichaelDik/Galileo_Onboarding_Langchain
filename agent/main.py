@@ -20,7 +20,7 @@ logger = GalileoLogger(
     log_stream="multi-turn-session"
 )
 #Dynmaically Create Session Name
-logger.start_session(name="Logger Session Tutorial")
+logger.start_session(name="Is this one Session?")
 
 # Create callback with the logger
 callback = GalileoCallback(galileo_logger=logger)
